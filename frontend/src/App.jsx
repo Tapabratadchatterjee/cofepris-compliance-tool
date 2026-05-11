@@ -10,6 +10,8 @@ function App() {
   const [extractedData, setExtractedData] = useState(null);
   const [finalReport, setFinalReport] = useState(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
     setRawText("");
@@ -39,7 +41,7 @@ function App() {
     
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/extract', formData, {
+      const response = await axios.post(`${API_BASE_URL}/api/extract`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setExtractedData(response.data.extractedData);
@@ -54,7 +56,7 @@ function App() {
   const handleEvaluate = async () => {
     setLoadingEval(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/evaluate', {
+      const response = await axios.post(`${API_BASE_URL}/api/evaluate`, {
         ingredients: extractedData
       });
       setFinalReport(response.data.report);
@@ -64,6 +66,28 @@ function App() {
     } finally {
       setLoadingEval(false);
     }
+  };
+
+  const exportToCSV = () => {
+    if (!finalReport) return;
+
+    // CSV Headers
+    let csvContent = "Ingredient,Input %,Status,Remarks & Regulations\n";
+
+    // Generate rows
+    finalReport.forEach(item => {
+      const ingredient = `"${(item.ingredient || '').replace(/"/g, '""')}"`;
+      const inputPercentage = `"${(item.inputPercentage || '').replace(/"/g, '""')}"`;
+      const status = `"${(item.status || '').replace(/"/g, '""')}"`;
+      const remarks = `"${(item.remarks || '').replace(/"/g, '""')}"`;
+      csvContent += `${ingredient},${inputPercentage},${status},${remarks}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "COFEPRIS_Compliance_Report.csv";
+    link.click();
   };
 
   // UI Theme Colors
@@ -251,7 +275,14 @@ function App() {
               </table>
             </div>
             
-            <div style={{ textAlign: 'center', marginTop: '35px' }}>
+            <div style={{ textAlign: 'center', marginTop: '35px', display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+              <button 
+                onClick={exportToCSV}
+                style={{ padding: '14px 35px', backgroundColor: theme.primaryGreen, color: '#fff', border: 'none', borderRadius: '30px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
+              >
+                📥 Download Report (CSV)
+              </button>
+
               <button 
                 onClick={resetFlow} 
                 style={{ padding: '14px 35px', backgroundColor: '#fff', color: theme.primaryGreen, border: `2px solid ${theme.primaryGreen}`, borderRadius: '30px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}
