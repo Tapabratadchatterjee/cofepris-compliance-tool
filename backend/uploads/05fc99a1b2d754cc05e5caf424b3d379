@@ -1,0 +1,12 @@
+Feature,Description
+Role,Makes web pages interactive.
+Engine,"V8 (Chrome), SpiderMonkey (Firefox)."
+Runtime,Browser or Node.js.
+Typing,Dynamic (you don't have to define int or string).
+
+
+Feature,var,let,const
+Scope,Function Scope,Block Scope {},Block Scope {}
+Re-declare?,Yes,No,No
+Re-assign?,Yes,Yes,No
+Hoisted?,Yes (as undefined),Yes (but in Dead Zone),Yes (but in Dead Zone)
